@@ -65,7 +65,12 @@ func (c *Container) PrusalinkApiV1TransferIdDelete(ctx echo.Context) error {
 
 // PrusalinkApiVersionGet - api version information
 func (c *Container) PrusalinkApiVersionGet(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
+	var capabilities = models.VersionCapabilities{UploadByPut: true}
+	return ctx.JSON(http.StatusOK, models.Version{
+		Api:          "2.0.0",
+		Text:         "PrusaLink",
+		Firmware:     "8.0.2+17092", // TODO from printer
+		Printer:      "7.1.0",       // TODO from printer
+		Capabilities: capabilities,
 	})
 }
