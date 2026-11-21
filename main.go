@@ -113,7 +113,7 @@ func methods() wirerpc.Methods {
 func routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /prusalinkemu", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /prusalink/emu", func(w http.ResponseWriter, r *http.Request) {
 		answer(w, http.StatusOK, map[string]any{
 			"message": settings().Message,
 			"principal": routesapi.PrincipalOf(r),
