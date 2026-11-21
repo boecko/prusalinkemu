@@ -91,7 +91,7 @@ cp "$HERE/module.yaml" "$RELEASE/module.yaml"
 # which the step above clears first.
 step "the process half builds..."
 BINARY="${NAME}_$(go env GOOS)_$(go env GOARCH)$(go env GOEXE)"
-quietly go -C "$HERE" build -o "$RELEASE/$BINARY" .
+go -C "$HERE" build -o "$RELEASE/$BINARY" .
 chmod +x "$RELEASE/$BINARY"
 
 # The operator's file. It names where the machine-owned overlay goes, where
@@ -132,7 +132,7 @@ step "$MODULE@$VERSION installs..."
 # grants your module what those permissions name, and switches the instance on.
 # That is what an operator does after reading what the module asked for, and
 # this is your own module on your own machine, so it is approved here.
-quietly go -C "$CHECKOUT" run ./cmd/prusa-connect module add "$MODULE@$VERSION" \
+go -C "$CHECKOUT" run ./cmd/prusa-connect module add "$MODULE@$VERSION" \
 	-config "$CONFIG" -from "$RELEASE" -approve
 
 echo "OK    $NAME is installed in $WORK"

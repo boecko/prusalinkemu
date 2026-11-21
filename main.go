@@ -10,6 +10,9 @@ import (
 	"os/signal"
 	"sync/atomic"
 
+	"github.com/boecko/prusalinkemu/handlers"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/prusa3d/prusa-connect/sdk/extension"
 	"github.com/prusa3d/prusa-connect/sdk/fault"
 	"github.com/prusa3d/prusa-connect/sdk/routesapi"
@@ -22,9 +25,11 @@ const (
 	release = extension.Version("0.1.0")
 )
 const defaultMessage = "Prusalinkemu is serving."
+
 type Settings struct {
 	Message string `json:"message"`
 }
+
 //nolint:gochecknoglobals // the one piece of state this skeleton has.
 var held atomic.Pointer[Settings]
 
@@ -44,6 +49,45 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 		os.Exit(1)
 	}
+	startPrusalink()
+}
+
+func startPrusalink() {
+	e := echo.New()
+
+	c, _ := handlers.NewContainer()
+
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	// PrusalinkApiV1FilesStoragePathDelete - Delete a file or folder
+	e.DELETE("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathDelete)
+
+	// PrusalinkApiV1FilesStoragePathGet - File or folder metadata
+	e.GET("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathGet)
+
+	// PrusalinkApiV1FilesStoragePathHead - file presence and state check
+	e.HEAD("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathHead)
+
+	// PrusalinkApiV1FilesStoragePathPost - Start print of file if there's no print job running
+	e.POST("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathPost)
+
+	// PrusalinkApiV1FilesStoragePathPut - upload file or create folder
+	e.PUT("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathPut)
+
+	// PrusalinkApiV1StorageGet - storage info
+	e.GET("/prusalink/api/v1/storage", c.PrusalinkApiV1StorageGet)
+
+	// PrusalinkApiV1TransferGet - transfer info
+	e.GET("/prusalink/api/v1/transfer", c.PrusalinkApiV1TransferGet)
+
+	// PrusalinkApiV1TransferIdDelete - stop transfer
+	e.DELETE("/prusalink/api/v1/transfer/:id", c.PrusalinkApiV1TransferIdDelete)
+
+	// PrusalinkApiVersionGet - api version information
+	e.GET("/prusalink/api/version", c.PrusalinkApiVersionGet)
+
 }
 
 func run() error {
@@ -89,7 +133,7 @@ func methods() wirerpc.Methods {
 					Name:     name,
 					Version:  release,
 					Contract: wirerpc.Contract,
-					Serves: []wirerpc.Method{wirerpc.MethodConfigure},
+					Serves:   []wirerpc.Method{wirerpc.MethodConfigure},
 				}, openAPI)
 		},
 		wirerpc.MethodConfigure: wirerpc.Configure(func(_ context.Context, sent Settings) error {
@@ -113,9 +157,9 @@ func methods() wirerpc.Methods {
 func routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /prusalink/emu", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /prusalinkemu", func(w http.ResponseWriter, r *http.Request) {
 		answer(w, http.StatusOK, map[string]any{
-			"message": settings().Message,
+			"message":   settings().Message,
 			"principal": routesapi.PrincipalOf(r),
 		})
 	})

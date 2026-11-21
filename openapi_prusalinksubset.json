@@ -1,0 +1,1072 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "prusalinkemu",
+    "version": "0.1.0",
+    "description": "The routes prusalinkemu serves. Every path is relative to the mount the host assigns, and the host serves this document rebased under it at <mount>/openapi.json."
+  },
+  "paths": {
+    "/prusalink/api/version": {
+      "get": {
+        "summary": "api version information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/prusalink/api/v1/storage": {
+      "parameters": [
+        {
+          "in": "header",
+          "name": "Accept-Language",
+          "description": "Defines a language of the response",
+          "schema": {
+            "type": "string",
+            "example": "cs"
+          }
+        }
+      ],
+      "get": {
+        "summary": "storage info",
+        "description": "Returns info about each available file storage (e.g. SD Card or local storage)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "storage_list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Storage"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/prusalink/api/v1/transfer": {
+      "get": {
+        "summary": "transfer info",
+        "description": "Returns info about current transfer",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transfer"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/prusalink/api/v1/transfer/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "description": "transfer id",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "example": 42
+          }
+        }
+      ],
+      "delete": {
+        "summary": "stop transfer",
+        "description": "Stop transfer with given id",
+        "responses": {
+          "204": {
+            "description": "No Content No Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/prusalink/api/v1/files/{storage}/{path}": {
+      "parameters": [
+        {
+          "in": "header",
+          "name": "Accept-Language",
+          "description": "Defines a language of the response",
+          "schema": {
+            "type": "string",
+            "example": "cs"
+          }
+        },
+        {
+          "in": "header",
+          "name": "Accept",
+          "description": "Preferred content-type of response - application/json or text/html, all other are returned as text/plain",
+          "schema": {
+            "type": "string",
+            "default": "text/plain"
+          }
+        },
+        {
+          "in": "path",
+          "name": "storage",
+          "description": "The target storage",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "/local"
+          }
+        },
+        {
+          "in": "path",
+          "name": "path",
+          "description": "Path to the file",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "/examples/Spice_Harvester_0.3mm_PLA_MK3S_12m.gcode"
+          }
+        }
+      ],
+      "get": {
+        "summary": "File or folder metadata",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileInfo"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PrintFileInfo"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FirmwareFileInfo"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FolderInfo"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "summary": "upload file or create folder",
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Content-Length",
+            "description": "Length of file to upload",
+            "schema": {
+              "type": "integer",
+              "example": 101342
+            }
+          },
+          {
+            "in": "header",
+            "name": "Content-Type",
+            "description": "Type of uploaded media",
+            "schema": {
+              "type": "string",
+              "default": "application/octet-stream"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Print-After-Upload",
+            "description": "Whether to start printing the file after upload",
+            "schema": {
+              "type": "string",
+              "description": "?0=False, ?1=True, according RFC8941/3.3.6",
+              "enum": [
+                "?0",
+                "?1"
+              ],
+              "default": "?0"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Overwrite",
+            "description": "Whether to overwrite already existing files",
+            "schema": {
+              "type": "string",
+              "description": "?0=False, ?1=True, according RFC8941/3.3.6",
+              "enum": [
+                "?0",
+                "?1"
+              ],
+              "default": "?0"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "post": {
+        "summary": "Start print of file if there's no print job running",
+        "description": "Body is ignored",
+        "requestBody": {
+            "content": {
+                "application/json": { 
+                    "schema" : {
+                        "type": "object"
+                    }
+                }
+            },
+            "required": false
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "head": {
+        "summary": "file presence and state check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Read-Only": {
+                "description": "Whether the file or storage is read-only",
+                "required": true,
+                "schema": {
+                  "type": "boolean",
+                  "example": true
+                }
+              },
+              "Currently-Printed": {
+                "description": "Whether this file is currently being printed",
+                "required": true,
+                "schema": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a file or folder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Force",
+            "description": "Whether to force delete non-empty folder",
+            "schema": {
+              "type": "string",
+              "description": "?0=False, ?1=True, according RFC8941/3.3.6",
+              "enum": [
+                "?0",
+                "?1"
+              ],
+              "default": "?0"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content No Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Version": {
+        "type": "object",
+        "properties": {
+          "api": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "version": {
+            "type": "string",
+            "example": "0.7.0"
+          },
+          "printer": {
+            "type": "string",
+            "example": "1.3.1"
+          },
+          "text": {
+            "type": "string",
+            "example": "PrusaLink 0.7.0"
+          },
+          "firmware": {
+            "type": "string",
+            "example": "3.10.1-4697"
+          },
+          "sdk": {
+            "type": "string",
+            "example": "0.7.0"
+          },
+          "capabilities": {
+            "description": "Additional capabilities the printer has. The object is expected to\nbe extended in the future with more capabilities. The absence of a\ncapability in the object, or the complete absence of the object\nmeans the printer doesn't support such capability (probably doesn't\neven know such capability might exist).\n",
+            "type": "object",
+            "default": {},
+            "properties": {
+              "upload-by-put": {
+                "description": "The printer supports uploading GCodes by the PUT method (as\ndescribed in this document). It is capable of doing the PUT and\nHEAD to /api/v1/files/{storage}/{path} and it is capable of\nanswering the /api/v1/storage endpoint.\n\nIn absence of this capability, client MAY opt to try the legacy\n\"octoprint\" POST to /api/files/{storage}.\n",
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "required": [
+          "api",
+          "version",
+          "printer",
+          "text",
+          "firmware"
+        ]
+      },
+      "Storage": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the storage, based on selected language",
+            "example": "PrusaLink gcodes"
+          },
+          "type": {
+            "type": "string",
+            "description": "Storage source",
+            "enum": [
+              "LOCAL",
+              "SDCARD",
+              "USB"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "description": "Path to storage (not display path)",
+            "example": "/local"
+          },
+          "print_files": {
+            "type": "integer",
+            "description": "Size of all print files in bytes",
+            "example": 19216842
+          },
+          "system_files": {
+            "type": "integer",
+            "description": "Size of all system files in bytes",
+            "example": 4242
+          },
+          "free_space": {
+            "type": "integer",
+            "description": "System free space in bytes",
+            "example": 1921681142
+          },
+          "total_space": {
+            "type": "integer",
+            "description": "System total space in bytes",
+            "example": 8589934592
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Whether the storage is available or not",
+            "example": true
+          },
+          "read_only": {
+            "type": "boolean",
+            "description": "Whether the storage is read only",
+            "example": false
+          }
+        },
+        "required": [
+          "available",
+          "path",
+          "type"
+        ]
+      },
+      "GenericFileInfo": {
+        "description": "Basic file info object, common for all files",
+        "type": "object",
+        "required": [
+          "name",
+          "read_only",
+          "type",
+          "m_timestamp"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Short Filename",
+            "example": "SPICE~1.gco"
+          },
+          "read_only": {
+            "type": "boolean",
+            "example": false
+          },
+          "size": {
+            "type": "integer",
+            "description": "Available for files only, not for folders",
+            "example": 424242
+          },
+          "type": {
+            "type": "string",
+            "description": "File could be print file, firmware file, other (e.g. configuration) file, or folder",
+            "enum": [
+              "PRINT_FILE",
+              "FIRMWARE",
+              "FILE",
+              "FOLDER"
+            ]
+          },
+          "m_timestamp": {
+            "description": "Timestamp in seconds",
+            "type": "integer",
+            "example": 1648042843
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Long Filename",
+            "example": "Spice_Harvester_0.3mm_PLA_MK3S_12m.gcode"
+          }
+        }
+      },
+      "FileInfo": {
+        "description": "Other, not specified files info",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GenericFileInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "refs": {
+                "type": "object",
+                "properties": {
+                  "download": {
+                    "type": "string",
+                    "example": "/api/files/local/file.txt/raw"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PrintFileInfoBasic": {
+        "description": "Simplified print file info within the folder's children",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GenericFileInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "refs": {
+                "$ref": "#/components/schemas/PrintFileRefs"
+              }
+            }
+          }
+        ]
+      },
+      "PrintFileRefs": {
+        "description": "Reference links for file thumbnail, icon and download",
+        "type": "object",
+        "properties": {
+          "download": {
+            "type": "string",
+            "example": "/api/files/local/examples/Spice_Harvester_0.3mm_PLA_MK3S_42m.gcode/raw"
+          },
+          "icon": {
+            "type": "string",
+            "example": "/api/thumbnails/local/examples/Spice_Harvester_0.3mm_PLA_MK3S_42m.gcode.small.png"
+          },
+          "thumbnail": {
+            "type": "string",
+            "example": "/api/thumbnails/local/examples/Spice_Harvester_0.3mm_PLA_MK3S_42m.gcode.orig.png"
+          }
+        }
+      },
+      "PrintFileMetadata": {
+        "type": "object",
+        "description": "Print file metadata parsed from G-code or SL1, all data are optional",
+        "properties": {
+          "bed_temperature": {
+            "type": "integer",
+            "description": "Degrees Celsius",
+            "example": 60
+          },
+          "bed_temperature per tool": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "description": "Degrees Celsius",
+              "example": 60
+            }
+          },
+          "temperature": {
+            "type": "integer",
+            "description": "Nozzle temperature, Degrees Celsius",
+            "example": 215
+          },
+          "temperature per tool": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "description": "Degrees Celsius",
+              "example": 215
+            }
+          },
+          "brim_width": {
+            "type": "integer",
+            "description": "Millimeters",
+            "example": 0
+          },
+          "estimated printing time (normal mode)": {
+            "type": "string",
+            "example": "42m 42s"
+          },
+          "estimated_print_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 25421
+          },
+          "faded_layers": {
+            "type": "integer",
+            "example": 42
+          },
+          "filament cost": {
+            "type": "number",
+            "example": 0.57
+          },
+          "filament cost per tool": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "example": 0.57
+            }
+          },
+          "filament used [cm3]": {
+            "type": "number",
+            "example": 12.42
+          },
+          "filament used [cm3] per tool": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "example": 11.42
+            }
+          },
+          "filament used [g]": {
+            "type": "number",
+            "example": 15.42
+          },
+          "filament used [g] per tool": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "example": 14.42
+            }
+          },
+          "filament used [mm]": {
+            "type": "number",
+            "example": 5142.06
+          },
+          "filament used [mm] per tool": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "example": 4292.7
+            }
+          },
+          "filament_type": {
+            "type": "string",
+            "example": "PLA"
+          },
+          "filament_type per tool": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "PLA"
+            }
+          },
+          "fill_density": {
+            "type": "string",
+            "description": "Percents",
+            "example": "20%"
+          },
+          "initial_exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 5
+          },
+          "layer_height": {
+            "type": "number",
+            "description": "Millimeters",
+            "example": 0.3
+          },
+          "material_name": {
+            "type": "string",
+            "example": "PLA Sandstorm Orange"
+          },
+          "exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 2
+          },
+          "max_exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 3
+          },
+          "max_initial_exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 3
+          },
+          "min_exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 3
+          },
+          "min_initial_exposure_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 1
+          },
+          "nozzle_diameter": {
+            "type": "number",
+            "description": "Millimeters",
+            "example": 0.4
+          },
+          "nozzle_diameter per tool": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "description": "Millimeters",
+              "example": 0.4
+            }
+          },
+          "normal_percent_present": {
+            "type": "boolean",
+            "example": true
+          },
+          "normal_left_present": {
+            "type": "boolean",
+            "example": true
+          },
+          "quiet_percent_present": {
+            "type": "boolean",
+            "example": true
+          },
+          "quiet_left_present": {
+            "type": "boolean",
+            "example": true
+          },
+          "layer_info_present": {
+            "type": "boolean",
+            "example": true
+          },
+          "max_layer_z": {
+            "type": "number",
+            "example": 4.2
+          },
+          "print_time": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 2542
+          },
+          "printer_model": {
+            "type": "string",
+            "enum": [
+              "MK3",
+              "MK3S",
+              "MINI"
+            ]
+          },
+          "support_material": {
+            "type": "string",
+            "example": "PLA"
+          },
+          "ironing": {
+            "type": "integer",
+            "example": 0
+          },
+          "required_resin_ml": {
+            "type": "number",
+            "example": 124.2
+          },
+          "profile": {
+            "type": "string",
+            "example": "ultra_fast"
+          }
+        }
+      },
+      "PrintFileInfo": {
+        "description": "Full print file info from the file's detail",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PrintFileInfoBasic"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "meta": {
+                "$ref": "#/components/schemas/PrintFileMetadata"
+              }
+            }
+          }
+        ]
+      },
+      "FirmwareFileInfoBasic": {
+        "description": "Simplified firmware file info within the folder's children",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GenericFileInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "refs": {
+                "type": "object",
+                "properties": {
+                  "download": {
+                    "type": "string",
+                    "example": "/api/files/local/firmware.hex/raw"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "FirmwareFileInfo": {
+        "description": "Full firmware file info from the file's detail",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FirmwareFileInfoBasic"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "description": "Firmware version in text format"
+                  },
+                  "printer_type": {
+                    "type": "integer"
+                  },
+                  "printer_version": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "FolderInfo": {
+        "description": "Info about the folder and its content, except nested children",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GenericFileInfo"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileInfo"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PrintFileInfoBasic"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FirmwareFileInfoBasic"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FolderInfo"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "NO_TRANSFER",
+              "FROM_WEB",
+              "FROM_CONNECT",
+              "FROM_PRINTER",
+              "FROM_SLICER",
+              "FROM_CLIENT",
+              "TO_CONNECT",
+              "TO_CLIENT"
+            ],
+            "example": "FROM_WEB"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Long Filename",
+            "example": "Spice_Harvester_0.3mm_PLA_MK3S_12m.gcode"
+          },
+          "path": {
+            "type": "string",
+            "example": "/local"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://files.printables.com/media/prints/42/gcodes/42_b42-242-442-8142c-424242/spice_harvester_0.3mm_pla_mk3s_12m.gcode"
+          },
+          "size": {
+            "type": "string",
+            "description": "Bytes",
+            "example": 239314
+          },
+          "progress": {
+            "type": "number",
+            "description": "Percents",
+            "example": 42.25
+          },
+          "transferred": {
+            "type": "integer",
+            "description": "Transferred data in bytes",
+            "example": 3276800
+          },
+          "time_remaining": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 61
+          },
+          "time_transferring": {
+            "type": "integer",
+            "description": "Seconds",
+            "example": 42
+          },
+          "to_print": {
+            "type": "boolean",
+            "description": "Whether or not print after finishing transfer (upload)",
+            "example": false
+          }
+        },
+        "required": [
+          "type",
+          "display_name",
+          "path",
+          "progress",
+          "transferred",
+          "time_transferring",
+          "to_print"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Prusa error code. Must be string if we will have printer with code for example 04",
+            "example": "10108"
+          },
+          "title": {
+            "type": "string",
+            "description": "Prusa error text string with prefilled variable macros.",
+            "example": "RESIN TOO LOW"
+          },
+          "text": {
+            "type": "string",
+            "description": "Prusa error text string with prefilled variable macros.",
+            "example": "Measured resin volume 22.4 ml is lower than required for this print. Refill the tank and restart the print."
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the Prusa help page",
+            "example": "https://help.prusa3d.com/en/10108/LHE3Q0I1"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ]
+      },
+      "ResponsePlaintext": {
+        "type": "string",
+        "default": "Project with same name has been already uploaded.",
+        "description": "Prusa error message (raw_message)"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "headers": {
+          "Content-Location": {
+            "$ref": "#/components/headers/Content-Location"
+          }
+        },
+        "content": {
+          "text/plain": {
+            "schema": {
+              "$ref": "#/components/schemas/ResponsePlaintext"
+            }
+          },
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found",
+        "headers": {
+          "Content-Location": {
+            "$ref": "#/components/headers/Content-Location"
+          }
+        },
+        "content": {
+          "text/plain": {
+            "schema": {
+              "$ref": "#/components/schemas/ResponsePlaintext"
+            }
+          },
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflict",
+        "headers": {
+          "Content-Location": {
+            "$ref": "#/components/headers/Content-Location"
+          }
+        },
+        "content": {
+          "text/plain": {
+            "schema": {
+              "$ref": "#/components/schemas/ResponsePlaintext"
+            }
+          },
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "headers": {
+      "Content-Location": {
+        "schema": {
+          "type": "string",
+          "default": "http://<PCL IP>/error"
+        },
+        "description": "URI path to nice error page. We can send URI to help.prusa3d.com in the future."
+      }
+    }
+  }
+}
