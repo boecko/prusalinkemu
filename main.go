@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -49,12 +50,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 		os.Exit(1)
 	}
-	startPrusalink()
 }
 
-func startPrusalink() {
+func startPrusalink() error {
 	e := echo.New()
-
+	e.HideBanner = true
+	e.Logger.SetOutput(os.Stderr)
+	e.Logger.SetLevel(99)
 	c, _ := handlers.NewContainer()
 
 	// Middleware
@@ -88,6 +90,10 @@ func startPrusalink() {
 	// PrusalinkApiVersionGet - api version information
 	e.GET("/prusalink/api/version", c.PrusalinkApiVersionGet)
 
+	if err := e.Start("0.0.0.0:9090"); err != nil && err != http.ErrServerClosed {
+		slog.Error("failed to start server", "error", err)
+	}
+	return nil
 }
 
 func run() error {
@@ -117,6 +123,9 @@ func run() error {
 	}
 
 	fmt.Fprintf(os.Stderr, "%s %s is serving on stdio as pid %d\n", name, release, os.Getpid())
+	go func() {
+		startPrusalink()
+	}()
 
 	if err = conn.Serve(ctx); err != nil {
 		return fmt.Errorf("serve: %w", err)
