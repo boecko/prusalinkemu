@@ -63,32 +63,32 @@ func startPrusalink() error {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// PrusalinkApiV1FilesStoragePathDelete - Delete a file or folder
-	e.DELETE("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathDelete)
+	// PrinterApiV1FilesStoragePathDelete - Delete a file or folder
+	e.DELETE("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathDelete)
 
-	// PrusalinkApiV1FilesStoragePathGet - File or folder metadata
-	e.GET("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathGet)
+	// PrinterApiV1FilesStoragePathGet - File or folder metadata
+	e.GET("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathGet)
 
-	// PrusalinkApiV1FilesStoragePathHead - file presence and state check
-	e.HEAD("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathHead)
+	// PrinterApiV1FilesStoragePathHead - file presence and state check
+	e.HEAD("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathHead)
 
-	// PrusalinkApiV1FilesStoragePathPost - Start print of file if there's no print job running
-	e.POST("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathPost)
+	// PrinterApiV1FilesStoragePathPost - Start print of file if there's no print job running
+	e.POST("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathPost)
 
-	// PrusalinkApiV1FilesStoragePathPut - upload file or create folder
-	e.PUT("/prusalink/api/v1/files/:storage/:path", c.PrusalinkApiV1FilesStoragePathPut)
+	// PrinterApiV1FilesStoragePathPut - upload file or create folder
+	e.PUT("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathPut)
 
-	// PrusalinkApiV1StorageGet - storage info
-	e.GET("/prusalink/api/v1/storage", c.PrusalinkApiV1StorageGet)
+	// PrinterApiV1StorageGet - storage info
+	e.GET("/:printer/api/v1/storage", c.PrinterApiV1StorageGet)
 
-	// PrusalinkApiV1TransferGet - transfer info
-	e.GET("/prusalink/api/v1/transfer", c.PrusalinkApiV1TransferGet)
+	// PrinterApiV1TransferGet - transfer info
+	e.GET("/:printer/api/v1/transfer", c.PrinterApiV1TransferGet)
 
-	// PrusalinkApiV1TransferIdDelete - stop transfer
-	e.DELETE("/prusalink/api/v1/transfer/:id", c.PrusalinkApiV1TransferIdDelete)
+	// PrinterApiV1TransferIdDelete - stop transfer
+	e.DELETE("/:printer/api/v1/transfer/:id", c.PrinterApiV1TransferIdDelete)
 
-	// PrusalinkApiVersionGet - api version information
-	e.GET("/prusalink/api/version", c.PrusalinkApiVersionGet)
+	// PrinterApiVersionGet - api version information
+	e.GET("/:printer/api/version", c.PrinterApiVersionGet)
 
 	if err := e.Start("0.0.0.0:9090"); err != nil && err != http.ErrServerClosed {
 		slog.Error("failed to start server", "error", err)

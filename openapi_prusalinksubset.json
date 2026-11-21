@@ -6,7 +6,19 @@
     "description": "The routes prusalinkemu serves. Every path is relative to the mount the host assigns, and the host serves this document rebased under it at <mount>/openapi.json."
   },
   "paths": {
-    "/prusalink/api/version": {
+    "/{printer}/api/version": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "printer",
+          "description": "printer name",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "coreone"
+          }
+        }
+      ],
       "get": {
         "summary": "api version information",
         "responses": {
@@ -26,19 +38,20 @@
         }
       }
     },
-    "/prusalink/api/v1/storage": {
-      "parameters": [
-        {
-          "in": "header",
-          "name": "Accept-Language",
-          "description": "Defines a language of the response",
-          "schema": {
-            "type": "string",
-            "example": "cs"
-          }
-        }
-      ],
+    "/{printer}/api/v1/storage": {
       "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "printer",
+            "description": "printer name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "coreone"
+            }
+          }
+        ],
         "summary": "storage info",
         "description": "Returns info about each available file storage (e.g. SD Card or local storage)",
         "responses": {
@@ -66,8 +79,20 @@
         }
       }
     },
-    "/prusalink/api/v1/transfer": {
+    "/{printer}/api/v1/transfer": {
       "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "printer",
+            "description": "printer name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "coreone"
+            }
+          }
+        ],
         "summary": "transfer info",
         "description": "Returns info about current transfer",
         "responses": {
@@ -90,8 +115,18 @@
         }
       }
     },
-    "/prusalink/api/v1/transfer/{id}": {
+    "/{printer}/api/v1/transfer/{id}": {
       "parameters": [
+        {
+          "in": "path",
+          "name": "printer",
+          "description": "printer name",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "coreone"
+          }
+        },
         {
           "in": "path",
           "name": "id",
@@ -122,7 +157,7 @@
         }
       }
     },
-    "/prusalink/api/v1/files/{storage}/{path}": {
+    "/{printer}/api/v1/files/{storage}/{path}": {
       "parameters": [
         {
           "in": "header",
@@ -140,6 +175,16 @@
           "schema": {
             "type": "string",
             "default": "text/plain"
+          }
+        },
+        {
+          "in": "path",
+          "name": "printer",
+          "description": "printer name",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "coreone"
           }
         },
         {
