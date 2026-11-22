@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -10,12 +11,36 @@ import (
 	"github.com/boecko/prusalinkemu/models"
 	"github.com/labstack/echo/v4"
 	"github.com/prusa3d/prusa-connect/sdk/deviceapi"
+	"github.com/prusa3d/prusa-connect/sdk/storageapi"
 )
 
 // PrinterApiV1FilesStoragePathPut - upload file or create folder
 func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
+	printer := ctx.Param("printer")
+	storage := ctx.Param("storage")
+	path := ctx.Param("path")
+	//printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
+	var _, err = findPrinter(c, printer)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, models.HelloWorld{
+			Message: "Printer not found",
+		})
+	}
+
+	r := ctx.Request()
+	bytes, _ := io.ReadAll(r.Body)
+	var writeParams = storageapi.WriteParams{}
+	writeParams.Path = path
+	writeParams.Storage = storage
+	writeParams.Size = int64(len(bytes))
+
+	_, errW := c.storageapi.Write(c.context, writeParams, r.Body)
+	if errW != nil {
+		return errW
+	}
+
 	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
+		Message: "Slicer doesn't realy care about this",
 	})
 }
 

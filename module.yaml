@@ -72,6 +72,7 @@ permissions:
   - observe
   - operate
   - read_storage
+  - write_storage
 # events:
 #   changed: prusalinkemu.changed
 require:
