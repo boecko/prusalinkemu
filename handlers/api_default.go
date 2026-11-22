@@ -18,16 +18,17 @@ import (
 
 // PrinterApiV1FilesStoragePathPut - upload file or create folder
 func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
+	const localStorage = "local"
 	printer := ctx.Param("printer")
 	//storage := ctx.Param("storage")
 	path := ctx.Param("path")
-	//printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
+	printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
 
 	//listing, _ := c.storageapi.List(c.context, storageapi.ListParams{})
 	//fmt.Fprintln(os.Stderr, "Listing -", listing)
 	//fmt.Fprintln(os.Stderr, "Parameters - printer:", printer, "storage:", storage, "path:", path)
 
-	var _, err = findPrinter(c, printer)
+	var printerInstance, err = findPrinter(c, printer)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, models.HelloWorld{
 			Message: "Printer not found",
@@ -38,15 +39,31 @@ func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 	fileBytes, _ := io.ReadAll(r.Body)
 	var writeParams = storageapi.WriteParams{}
 	writeParams.Path = path
-	writeParams.Storage = "local"
+	writeParams.Storage = localStorage
 	writeParams.Size = int64(len(fileBytes))
-	// fmt.Fprintf(os.Stderr, "writeParams - Path: %s, Storage: %s, Size: %d\n", writeParams.Path, writeParams.Storage, writeParams.Size)
+	fmt.Fprintf(os.Stderr, "writeParams - Path: %s, Storage: %s, Size: %d\n", writeParams.Path, writeParams.Storage, writeParams.Size)
 
 	_, errW := c.storageapi.Write(c.context, writeParams, bytes.NewReader(fileBytes))
 	if errW != nil {
 		return errW
 	}
-
+	if printAfterUpload == "?1" {
+		var printParams deviceapi.PrintParams
+		printParams.ID = printerInstance.ID
+		printParams.Storage = localStorage
+		printParams.Source = "PrusaSlicer"
+		printParams.Path = path
+		started, pErr := c.devicesapi.Print(c.context, printParams)
+		if pErr != nil {
+			fmt.Fprintln(os.Stderr, "Error: %s", pErr.Error())
+			return ctx.JSON(http.StatusBadRequest, models.HelloWorld{
+				Message: "Printer ERR: " + pErr.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusOK, models.HelloWorld{
+			Message: "Print started " + started.CommandID,
+		})
+	}
 	return ctx.JSON(http.StatusOK, models.HelloWorld{
 		Message: "Slicer doesn't realy care about this",
 	})
