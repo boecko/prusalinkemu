@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/prusa3d/prusa-connect/sdk/deviceapi"
 	"github.com/prusa3d/prusa-connect/sdk/storageapi"
+	"github.com/prusa3d/prusa-connect/sdk/wirerpc"
 )
 
 // PrinterApiV1FilesStoragePathPut - upload file or create folder
@@ -55,11 +56,12 @@ func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 func (c *Container) PrinterApiV1StorageGet(ctx echo.Context) error {
 	//printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
 
-	listing, err := c.storageapi.List(c.context, storageapi.ListParams{Storage: "local"})
+	//listing, err := c.storageapi.List(c.context, storageapi.ListParams{Storage: "local"})
+	_, err := findStorages(c)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(os.Stderr, "Listing -", listing)
+	//fmt.Fprintln(os.Stderr, "Listing -", listing)
 
 	storage := models.Storage{
 		Path:      "/prusaconnect",
@@ -84,7 +86,7 @@ func (c *Container) PrinterApiVersionGet(ctx echo.Context) error {
 		})
 	}
 
-	fmt.Fprintln(os.Stderr, "DEVICE %w", device)
+	//fmt.Fprintln(os.Stderr, "DEVICE %w", device)
 
 	var capabilities = models.VersionCapabilities{UploadByPut: true}
 	return ctx.JSON(http.StatusOK, models.Version{
@@ -124,4 +126,12 @@ func findPrinter(c *Container, wanted string) (deviceapi.Device, error) {
 		}
 	}
 	return deviceapi.Device{}, fmt.Errorf("no device found with name %s", wanted)
+}
+
+func findStorages(c *Container) ([]string, error) {
+	const MethodResources wirerpc.Method = "resources"
+	resources, err := c.wirerpc.Call(c.context, MethodResources, nil)
+	fmt.Fprintln(os.Stderr, "Resources -", resources)
+
+	return nil, err
 }

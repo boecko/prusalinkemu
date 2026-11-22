@@ -57,12 +57,12 @@ func main() {
 	}
 }
 
-func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageapi *storageapi.Client) error {
+func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageapi *storageapi.Client, conn *wirerpc.Conn) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger.SetOutput(os.Stderr)
 	e.Logger.SetLevel(99)
-	c, _ := handlers.NewContainer(ctx, devicesapi, storageapi)
+	c, _ := handlers.NewContainer(ctx, devicesapi, storageapi, conn)
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -113,7 +113,7 @@ func run() error {
 
 	fmt.Fprintf(os.Stderr, "%s %s is serving on stdio as pid %d\n", name, release, os.Getpid())
 	go func() {
-		startPrusalink(ctx, deviceapi.NewClient(conn), storageapi.NewClient(conn))
+		startPrusalink(ctx, deviceapi.NewClient(conn), storageapi.NewClient(conn), conn)
 	}()
 
 	if err = conn.Serve(ctx); err != nil {
