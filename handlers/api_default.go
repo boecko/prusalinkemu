@@ -49,8 +49,16 @@ func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 
 // PrinterApiV1StorageGet - storage info
 func (c *Container) PrinterApiV1StorageGet(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
+	storage := models.Storage{
+		Path:      "/prusaconnect",
+		Name:      "PrusaConnect",
+		Type:      "USB",
+		ReadOnly:  false,
+		Available: true,
+	}
+
+	return ctx.JSON(http.StatusOK, map[string][]models.Storage{
+		"storage_list": {storage},
 	})
 }
 
