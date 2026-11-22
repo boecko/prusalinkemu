@@ -78,3 +78,9 @@ permissions:
 require:
   core: ">=0.1.0-beta.1"
   core-device.list: "*"
+  core-device.get: "*"
+  core-device.jobs: "*"
+  core-device.files: "*"
+  core-device.print: "*"
+  core-device.command: "*"
+  core-storage.stat: "*"
