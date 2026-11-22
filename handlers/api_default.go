@@ -86,7 +86,7 @@ func (c *Container) PrinterApiVersionGet(ctx echo.Context) error {
 		})
 	}
 
-	fmt.Fprintf(os.Stderr, "DEVICE %s\n", device)
+	fmt.Fprintln(os.Stderr, "DEVICE %w", device)
 
 	var capabilities = models.VersionCapabilities{UploadByPut: true}
 	return ctx.JSON(http.StatusOK, models.Version{
@@ -109,7 +109,7 @@ func toSlug(s string) string {
 
 func findPrinter(c *Container, wanted string) (deviceapi.Device, error) {
 	listparams := deviceapi.ListParams{
-		Limit: 10,
+		Limit: 100,
 	}
 	page, err := c.devicesapi.List(c.context, listparams)
 	if err != nil {
