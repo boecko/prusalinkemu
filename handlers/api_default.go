@@ -19,13 +19,13 @@ import (
 // PrinterApiV1FilesStoragePathPut - upload file or create folder
 func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 	printer := ctx.Param("printer")
-	storage := ctx.Param("storage")
+	//storage := ctx.Param("storage")
 	path := ctx.Param("path")
 	//printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
 
-	listing, _ := c.storageapi.List(c.context, storageapi.ListParams{})
-	fmt.Fprintln(os.Stderr, "Listing -", listing)
-	fmt.Fprintln(os.Stderr, "Parameters - printer:", printer, "storage:", storage, "path:", path)
+	//listing, _ := c.storageapi.List(c.context, storageapi.ListParams{})
+	//fmt.Fprintln(os.Stderr, "Listing -", listing)
+	//fmt.Fprintln(os.Stderr, "Parameters - printer:", printer, "storage:", storage, "path:", path)
 
 	var _, err = findPrinter(c, printer)
 	if err != nil {
@@ -40,7 +40,7 @@ func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 	writeParams.Path = path
 	writeParams.Storage = "local"
 	writeParams.Size = int64(len(fileBytes))
-	fmt.Fprintf(os.Stderr, "writeParams - Path: %s, Storage: %s, Size: %d\n", writeParams.Path, writeParams.Storage, writeParams.Size)
+	// fmt.Fprintf(os.Stderr, "writeParams - Path: %s, Storage: %s, Size: %d\n", writeParams.Path, writeParams.Storage, writeParams.Size)
 
 	_, errW := c.storageapi.Write(c.context, writeParams, bytes.NewReader(fileBytes))
 	if errW != nil {
@@ -57,11 +57,6 @@ func (c *Container) PrinterApiV1StorageGet(ctx echo.Context) error {
 	//printAfterUpload := ctx.Request().Header.Get("Print-After-Upload")
 
 	//listing, err := c.storageapi.List(c.context, storageapi.ListParams{Storage: "local"})
-	_, err := findStorages(c)
-	if err != nil {
-		return err
-	}
-	//fmt.Fprintln(os.Stderr, "Listing -", listing)
 
 	storage := models.Storage{
 		Path:      "/prusaconnect",
@@ -128,6 +123,7 @@ func findPrinter(c *Container, wanted string) (deviceapi.Device, error) {
 	return deviceapi.Device{}, fmt.Errorf("no device found with name %s", wanted)
 }
 
+// FIXME pruseconnect is missing this
 func findStorages(c *Container) ([]string, error) {
 	const MethodResources wirerpc.Method = "resources"
 	resources, err := c.wirerpc.Call(c.context, MethodResources, nil)
