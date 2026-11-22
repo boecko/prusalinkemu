@@ -14,6 +14,7 @@ import (
 	"github.com/boecko/prusalinkemu/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prusa3d/prusa-connect/sdk/deviceapi"
 	"github.com/prusa3d/prusa-connect/sdk/extension"
 	"github.com/prusa3d/prusa-connect/sdk/fault"
 	"github.com/prusa3d/prusa-connect/sdk/routesapi"
@@ -52,12 +53,12 @@ func main() {
 	}
 }
 
-func startPrusalink() error {
+func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger.SetOutput(os.Stderr)
 	e.Logger.SetLevel(99)
-	c, _ := handlers.NewContainer()
+	c, _ := handlers.NewContainer(ctx, devicesapi)
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -124,7 +125,7 @@ func run() error {
 
 	fmt.Fprintf(os.Stderr, "%s %s is serving on stdio as pid %d\n", name, release, os.Getpid())
 	go func() {
-		startPrusalink()
+		startPrusalink(ctx, deviceapi.NewClient(conn))
 	}()
 
 	if err = conn.Serve(ctx); err != nil {

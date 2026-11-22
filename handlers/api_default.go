@@ -1,10 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"regexp"
+	"strings"
 
 	"github.com/boecko/prusalinkemu/models"
 	"github.com/labstack/echo/v4"
+	"github.com/prusa3d/prusa-connect/sdk/deviceapi"
 )
 
 // PrinterApiV1FilesStoragePathDelete - Delete a file or folder
@@ -66,17 +71,51 @@ func (c *Container) PrinterApiV1TransferIdDelete(ctx echo.Context) error {
 // PrinterApiVersionGet - api version information
 func (c *Container) PrinterApiVersionGet(ctx echo.Context) error {
 	printer := ctx.Param("printer")
-	//var device, _ = findPrinter(c, printer)
+	var device, err = findPrinter(c, printer)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, models.HelloWorld{
+			Message: "Printer not found",
+		})
+	}
+
+	fmt.Fprintf(os.Stderr, "DEVICE %s\n", device)
+
 	var capabilities = models.VersionCapabilities{UploadByPut: true}
 	return ctx.JSON(http.StatusOK, models.Version{
 		Api:          "2.0.0",
 		Text:         "PrusaLink " + printer,
-		Firmware:     "8.0.2+17092", // TODO from printer
-		Printer:      "7.1.0",       // TODO from printer
+		Firmware:     device.Firmware,
+		Printer:      "7.1.0",
 		Capabilities: capabilities,
 	})
 }
 
+func toSlug(s string) string {
+	s = strings.ToLower(s)
+	s = strings.TrimSpace(s)
+	reg := regexp.MustCompile(`[^a-z0-9]+`)
+	s = reg.ReplaceAllString(s, "")
+	s = strings.Trim(s, "")
+	return s
+}
+
 func findPrinter(c *Container, wanted string) (deviceapi.Device, error) {
-	return deviceapi.Device{}, nil
+	listparams := deviceapi.ListParams{
+		Limit: 10,
+	}
+	page, err := c.devicesapi.List(c.context, listparams)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "DEVICES err", err)
+	}
+	if len(page.Items) == 0 {
+		return deviceapi.Device{}, fmt.Errorf("no devices found")
+	}
+	wantedSlug := toSlug(wanted)
+	for _, device := range page.Items {
+		deviceSlug := toSlug(device.Name)
+		if deviceSlug == wantedSlug {
+			return device, nil
+		}
+	}
+	return deviceapi.Device{}, fmt.Errorf("no device found with name %s", wanted)
 }

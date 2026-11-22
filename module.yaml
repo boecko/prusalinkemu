@@ -22,8 +22,8 @@ license: MIT
 # installed module. Write your own sentence here, a title if the name alone reads badly, and your name or
 # your team's beside it.
 # title: Your module's name
-summary: One sentence saying what prusalinkemu does.
-# codeowner: your-name
+summary: PrusaLink Emulation
+codeowner: Andreas Boeckler (and not claude)
 # The module wire major the process half speaks.
 contract_major: 1
 # Where the fragment describing the routes is, inside this repository.
@@ -68,8 +68,12 @@ options:
 # no sync loop, no background work. Write one line per permission saying what it
 # lets this module do.
 #
-# permissions:
-#   # read the fleet and the event stream, so the page can list devices
-#   - observe
+permissions:
+  - observe
+  - operate
+  - read_storage
 # events:
 #   changed: prusalinkemu.changed
+require:
+  core: ">=0.1.0-beta.1"
+  core-device.list: "*"
