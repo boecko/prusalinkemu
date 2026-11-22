@@ -65,12 +65,18 @@ func (c *Container) PrinterApiV1TransferIdDelete(ctx echo.Context) error {
 
 // PrinterApiVersionGet - api version information
 func (c *Container) PrinterApiVersionGet(ctx echo.Context) error {
+	printer := ctx.Param("printer")
+	//var device, _ = findPrinter(c, printer)
 	var capabilities = models.VersionCapabilities{UploadByPut: true}
 	return ctx.JSON(http.StatusOK, models.Version{
 		Api:          "2.0.0",
-		Text:         "PrusaLink",
+		Text:         "PrusaLink " + printer,
 		Firmware:     "8.0.2+17092", // TODO from printer
 		Printer:      "7.1.0",       // TODO from printer
 		Capabilities: capabilities,
 	})
+}
+
+func findPrinter(c *Container, wanted string) (deviceapi.Device, error) {
+	return deviceapi.Device{}, nil
 }
