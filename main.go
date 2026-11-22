@@ -64,29 +64,11 @@ func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client) error {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// PrinterApiV1FilesStoragePathDelete - Delete a file or folder
-	e.DELETE("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathDelete)
-
-	// PrinterApiV1FilesStoragePathGet - File or folder metadata
-	e.GET("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathGet)
-
-	// PrinterApiV1FilesStoragePathHead - file presence and state check
-	e.HEAD("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathHead)
-
-	// PrinterApiV1FilesStoragePathPost - Start print of file if there's no print job running
-	e.POST("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathPost)
-
 	// PrinterApiV1FilesStoragePathPut - upload file or create folder
 	e.PUT("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathPut)
 
 	// PrinterApiV1StorageGet - storage info
 	e.GET("/:printer/api/v1/storage", c.PrinterApiV1StorageGet)
-
-	// PrinterApiV1TransferGet - transfer info
-	e.GET("/:printer/api/v1/transfer", c.PrinterApiV1TransferGet)
-
-	// PrinterApiV1TransferIdDelete - stop transfer
-	e.DELETE("/:printer/api/v1/transfer/:id", c.PrinterApiV1TransferIdDelete)
 
 	// PrinterApiVersionGet - api version information
 	e.GET("/:printer/api/version", c.PrinterApiVersionGet)

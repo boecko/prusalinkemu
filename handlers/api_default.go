@@ -12,34 +12,6 @@ import (
 	"github.com/prusa3d/prusa-connect/sdk/deviceapi"
 )
 
-// PrinterApiV1FilesStoragePathDelete - Delete a file or folder
-func (c *Container) PrinterApiV1FilesStoragePathDelete(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
-	})
-}
-
-// PrinterApiV1FilesStoragePathGet - File or folder metadata
-func (c *Container) PrinterApiV1FilesStoragePathGet(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
-	})
-}
-
-// PrinterApiV1FilesStoragePathHead - file presence and state check
-func (c *Container) PrinterApiV1FilesStoragePathHead(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
-	})
-}
-
-// PrinterApiV1FilesStoragePathPost - Start print of file if there's no print job running
-func (c *Container) PrinterApiV1FilesStoragePathPost(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
-	})
-}
-
 // PrinterApiV1FilesStoragePathPut - upload file or create folder
 func (c *Container) PrinterApiV1FilesStoragePathPut(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, models.HelloWorld{
@@ -59,20 +31,6 @@ func (c *Container) PrinterApiV1StorageGet(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, map[string][]models.Storage{
 		"storage_list": {storage},
-	})
-}
-
-// PrinterApiV1TransferGet - transfer info
-func (c *Container) PrinterApiV1TransferGet(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
-	})
-}
-
-// PrinterApiV1TransferIdDelete - stop transfer
-func (c *Container) PrinterApiV1TransferIdDelete(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, models.HelloWorld{
-		Message: "Hello World",
 	})
 }
 
