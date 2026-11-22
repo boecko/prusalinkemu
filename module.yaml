@@ -33,8 +33,6 @@ openapi: openapi.json
 platforms:
   - linux_amd64
   - linux_arm64
-  - darwin_arm64
-  - windows_amd64
 
 # Every setting this module reads, each with its type, its default and one
 # sentence saying what it controls. The host applies every default, writes the
