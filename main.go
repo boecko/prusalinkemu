@@ -36,6 +36,9 @@ type Settings struct {
 //nolint:gochecknoglobals // the one piece of state this skeleton has.
 var held atomic.Pointer[Settings]
 
+//nolint:gochecknoglobals // whether the echo server in startPrusalink is listening.
+var echoServerUp atomic.Bool
+
 func settings() Settings {
 	if current := held.Load(); current != nil {
 		return *current
@@ -74,8 +77,10 @@ func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageap
 	// PrinterApiVersionGet - api version information
 	e.GET("/:printer/api/version", c.PrinterApiVersionGet)
 
+	echoServerUp.Store(true)
 	if err := e.Start("0.0.0.0:9090"); err != nil && err != http.ErrServerClosed {
 		slog.Error("failed to start server", "error", err)
+		echoServerUp.Store(false)
 	}
 	return nil
 }
@@ -150,13 +155,14 @@ func methods() wirerpc.Methods {
 func routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /prusalinkemu", func(w http.ResponseWriter, r *http.Request) {
-		answer(w, http.StatusOK, map[string]any{
-			"message":   settings().Message,
-			"principal": routesapi.PrincipalOf(r),
-		})
-	})
+	mux.HandleFunc("GET /status", func(w http.ResponseWriter, r *http.Request) {
+		state := "stopped"
+		if echoServerUp.Load() {
+			state = "running"
+		}
 
+		answer(w, http.StatusOK, map[string]any{"state": state})
+	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		refuse(w, r, RouteNotFound.
 			New("this module serves no route at "+r.URL.Path).

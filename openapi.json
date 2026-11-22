@@ -6,31 +6,30 @@
     "description": "The routes prusalinkemu serves. Every path is relative to the mount the host assigns, and the host serves this document rebased under it at <mount>/openapi.json."
   },
   "paths": {
-    "/prusalink/emu": {
+    "/status": {
       "get": {
-        "operationId": "read-prusalinkemu",
-        "summary": "What this module holds",
-        "description": "What the module holds, and the principal the host authorized, which is the host's answer and never a header the caller set. The host takes view_resource on the module's instance before this is called.",
+        "operationId": "read-status",
+        "summary": "State of the embedded PrusaLink echo server",
+        "description": "Whether the echo server started in startPrusalink is listening",
         "responses": {
           "200": {
-            "description": "The module's answer.",
+            "description": "The echo server's state.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
+                    "state": {
                       "type": "string",
-                      "description": "One line the page shows."
-                    },
-                    "principal": {
-                      "type": "string",
-                      "description": "Who the host says is calling."
+                      "enum": [
+                        "running",
+                        "stopped"
+                      ],
+                      "description": "Whether the echo server is listening."
                     }
                   },
                   "required": [
-                    "message",
-                    "principal"
+                    "state"
                   ]
                 }
               }
