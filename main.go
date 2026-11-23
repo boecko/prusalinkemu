@@ -28,12 +28,10 @@ const (
 	name    = "prusalinkemu"
 	release = extension.Version("0.1.0")
 )
-const defaultMessage = "Prusalinkemu is serving."
 const defaultPort = 9090
 
 type Settings struct {
-	Message string `json:"message"`
-	Port    int    `json:"port"`
+	Port int `json:"port"`
 }
 
 //nolint:gochecknoglobals // the one piece of state this skeleton has.
@@ -47,7 +45,7 @@ func settings() Settings {
 		return *current
 	}
 
-	return Settings{Message: defaultMessage, Port: defaultPort}
+	return Settings{Port: defaultPort}
 }
 
 //go:embed openapi.json
@@ -147,9 +145,6 @@ func methods() wirerpc.Methods {
 				}, openAPI)
 		},
 		wirerpc.MethodConfigure: wirerpc.Configure(func(_ context.Context, sent Settings) error {
-			if sent.Message == "" {
-				sent.Message = defaultMessage
-			}
 			if sent.Port == 0 {
 				sent.Port = defaultPort
 			}

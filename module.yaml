@@ -41,18 +41,14 @@ platforms:
 # refused before the process starts, and nothing in main.go reads an
 # environment variable, so this list is where an operator finds every knob.
 #
-# An operator who wants another line writes:
+# An operator who wants another port writes:
 #
 #   resources:
 #     sink:
 #       prusalinkemu:
 #         config:
-#           message: Ready.
+#           port: 8080
 options:
-  - key: message
-    type: string
-    default: "Prusalinkemu is serving."
-    summary: The line GET /prusalinkemu answers with.
   - key: port
     type: int
     default: "9090"

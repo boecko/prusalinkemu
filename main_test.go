@@ -13,30 +13,7 @@ import (
 	"github.com/prusa3d/prusa-connect/sdk/wirerpc"
 )
 
-// TestTheRouteAnswers is the permit half: the path openapi.json declares
-// answers 200 and the line the settings hold.
-func TestTheRouteAnswers(t *testing.T) {
-	recorder := httptest.NewRecorder()
-	routes().ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/prusalinkemu", nil))
-
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("GET /prusalinkemu answered %d, want %d", recorder.Code, http.StatusOK)
-	}
-
-	var body struct {
-		Message string `json:"message"`
-	}
-
-	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
-		t.Fatalf("the answer is not JSON: %v", err)
-	}
-
-	if body.Message != defaultMessage {
-		t.Fatalf("the answer reads %q, want %q", body.Message, defaultMessage)
-	}
-}
-
-// TestAPathThisModuleDoesNotServeIsRefusedByCode is the refusal half. A client
+// TestAPathThisModuleDoesNotServeIsRefusedByCode is the refusal check. A client
 // branches on the code, so the test reads the code and not the sentence: a
 // reworded sentence must not break a caller, and a changed code must.
 func TestAPathThisModuleDoesNotServeIsRefusedByCode(t *testing.T) {
@@ -87,11 +64,6 @@ func TestTheManifestPublishesTheCodesDefault(t *testing.T) {
 		t.Fatalf("read module.yaml: %v", err)
 	}
 
-	declared := `default: "` + defaultMessage + `"`
-	if !strings.Contains(string(manifest), declared) {
-		t.Fatalf("module.yaml does not declare %s for the message setting", declared)
-	}
-
 	if declared := `default: "` + strconv.Itoa(defaultPort) + `"`; !strings.Contains(string(manifest), declared) {
 		t.Fatalf("module.yaml does not declare %s for the port setting", declared)
 	}
@@ -106,8 +78,8 @@ func TestConfigureDefaultsThePort(t *testing.T) {
 		config string
 		want   int
 	}{
-		"no port written": {`{"message":"Ready."}`, defaultPort},
-		"a port written":  {`{"message":"Ready.","port":8080}`, 8080},
+		"no port written": {`{}`, defaultPort},
+		"a port written":  {`{"port":8080}`, 8080},
 	} {
 		t.Run(name, func(t *testing.T) {
 			params, err := json.Marshal(wirerpc.Settings{Config: json.RawMessage(tc.config)})
