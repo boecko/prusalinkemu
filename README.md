@@ -2,18 +2,18 @@
 
 A Prusa Connect module that emulates PrusaLink.
 So it's usable with the PrusaSlicer 2.9.x
-For now it's WIP (it works with the dmeo) and has a fixed listening port 9090 
-No API Key is required ATM.
+For now it's WIP (it works with the demo)
 
 ## what works?
+* setting the port (default:9090)
+* setting a password
 * upload
 
 ![Upload](images/02_upload.png)
 ![Uploadfinished](images/03_uploadfinished.png)
 ![Upload in prusaconnect](images/04_uploadinconnect.png)
- 
+
 ## what doesn't work at the moment?
-* changing the port
 * print after upload (it's a prusaconnect access limitation)
 
 ![fail](images/05_uploadprintfailure.png)
