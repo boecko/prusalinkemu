@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"sync/atomic"
+	"time"
 
 	"github.com/boecko/prusalinkemu/handlers"
 	"github.com/labstack/echo/v4"
@@ -28,9 +29,11 @@ const (
 	release = extension.Version("0.1.0")
 )
 const defaultMessage = "Prusalinkemu is serving."
+const defaultPort = 9090
 
 type Settings struct {
 	Message string `json:"message"`
+	Port    int    `json:"port"`
 }
 
 //nolint:gochecknoglobals // the one piece of state this skeleton has.
@@ -44,7 +47,7 @@ func settings() Settings {
 		return *current
 	}
 
-	return Settings{Message: defaultMessage}
+	return Settings{Message: defaultMessage, Port: defaultPort}
 }
 
 //go:embed openapi.json
@@ -58,6 +61,15 @@ func main() {
 }
 
 func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageapi *storageapi.Client, conn *wirerpc.Conn) error {
+	deadline := time.Now().Add(5 * time.Second)
+	for held.Load() == nil && time.Now().Before(deadline) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
+
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger.SetOutput(os.Stderr)
@@ -78,7 +90,7 @@ func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageap
 	e.GET("/:printer/api/version", c.PrinterApiVersionGet)
 
 	echoServerUp.Store(true)
-	if err := e.Start("0.0.0.0:9090"); err != nil && err != http.ErrServerClosed {
+	if err := e.Start(fmt.Sprintf("0.0.0.0:%d", settings().Port)); err != nil && err != http.ErrServerClosed {
 		slog.Error("failed to start server", "error", err)
 		echoServerUp.Store(false)
 	}
@@ -137,6 +149,9 @@ func methods() wirerpc.Methods {
 		wirerpc.MethodConfigure: wirerpc.Configure(func(_ context.Context, sent Settings) error {
 			if sent.Message == "" {
 				sent.Message = defaultMessage
+			}
+			if sent.Port == 0 {
+				sent.Port = defaultPort
 			}
 
 			held.Store(&sent)

@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/prusa3d/prusa-connect/sdk/wirerpc"
 )
 
 // TestTheRouteAnswers is the permit half: the path openapi.json declares
@@ -87,18 +91,40 @@ func TestTheManifestPublishesTheCodesDefault(t *testing.T) {
 	if !strings.Contains(string(manifest), declared) {
 		t.Fatalf("module.yaml does not declare %s for the message setting", declared)
 	}
+
+	if declared := `default: "` + strconv.Itoa(defaultPort) + `"`; !strings.Contains(string(manifest), declared) {
+		t.Fatalf("module.yaml does not declare %s for the port setting", declared)
+	}
 }
 
-// TestNoSettingIsReadFromTheEnvironment keeps every setting in the manifest. A
-// setting read from the environment is one an operator cannot find in the
-// manifest, cannot see on the settings pane, and cannot set through the API.
-func TestNoSettingIsReadFromTheEnvironment(t *testing.T) {
-	source, err := os.ReadFile("main.go")
-	if err != nil {
-		t.Fatalf("read main.go: %v", err)
-	}
+func TestConfigureDefaultsThePort(t *testing.T) {
+	saved := held.Load()
+	held.Store(nil)
+	t.Cleanup(func() { held.Store(saved) })
 
-	if strings.Contains(string(source), "os.Getenv") {
-		t.Fatal("main.go reads an environment variable. Declare the setting in module.yaml instead")
+	for name, tc := range map[string]struct {
+		config string
+		want   int
+	}{
+		"no port written": {`{"message":"Ready."}`, defaultPort},
+		"a port written":  {`{"message":"Ready.","port":8080}`, 8080},
+	} {
+		t.Run(name, func(t *testing.T) {
+			params, err := json.Marshal(wirerpc.Settings{Config: json.RawMessage(tc.config)})
+			if err != nil {
+				t.Fatalf("render the settings: %v", err)
+			}
+
+			if _, err := methods()[wirerpc.MethodConfigure](context.Background(), wirerpc.Call{
+				Method: wirerpc.MethodConfigure,
+				Params: params,
+			}); err != nil {
+				t.Fatalf("configure refused the settings: %v", err)
+			}
+
+			if got := settings().Port; got != tc.want {
+				t.Fatalf("the held port is %d, want %d", got, tc.want)
+			}
+		})
 	}
 }

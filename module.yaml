@@ -53,6 +53,10 @@ options:
     type: string
     default: "Prusalinkemu is serving."
     summary: The line GET /prusalinkemu answers with.
+  - key: port
+    type: int
+    default: "9090"
+    summary: The port the PrusaLink echo server listens on.
 
 # The memory in MiB the server may budget for the process, children included.
 # needs:
