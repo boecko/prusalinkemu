@@ -13,13 +13,14 @@ No API Key is required ATM.
 ![Upload in prusaconnect](images/04_uploadinconnect.png)
  
 ## what doesn't work at the moment?
+* changing the port
 * print after upload (it's a prusaconnect access limitation)
 
 ![fail](images/05_uploadprintfailure.png)
 
 ## setup instructions in slicer
 * HostType: PrusaLink (obviously)
-* HostName: http://<ip>:9090/<printername>
+* HostName: http://&lt;ip&gt;:9090/<printername>
 
 ![Settings](images/01_settings.png)
 
