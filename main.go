@@ -31,7 +31,8 @@ const (
 const defaultPort = 9090
 
 type Settings struct {
-	Port int `json:"port"`
+	Port     int    `json:"port"`
+	Password string `json:"password"`
 }
 
 //nolint:gochecknoglobals // the one piece of state this skeleton has.

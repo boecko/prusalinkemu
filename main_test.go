@@ -67,6 +67,12 @@ func TestTheManifestPublishesTheCodesDefault(t *testing.T) {
 	if declared := `default: "` + strconv.Itoa(defaultPort) + `"`; !strings.Contains(string(manifest), declared) {
 		t.Fatalf("module.yaml does not declare %s for the port setting", declared)
 	}
+
+	// An empty password is the code's default (open server), so the manifest
+	// must publish it as such or an operator would not know auth is off.
+	if !strings.Contains(string(manifest), `default: ""`) {
+		t.Fatalf("module.yaml does not declare an empty default for the password setting")
+	}
 }
 
 func TestConfigureDefaultsThePort(t *testing.T) {

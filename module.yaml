@@ -53,6 +53,10 @@ options:
     type: int
     default: "9090"
     summary: The port the PrusaLink echo server listens on.
+  - key: password
+    type: string
+    default: ""
+    summary: The key clients must send in the X-Api-Key header; empty leaves the server open.
 
 # The memory in MiB the server may budget for the process, children included.
 # needs:
