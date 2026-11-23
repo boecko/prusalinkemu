@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -59,6 +60,19 @@ func main() {
 	}
 }
 
+func apiKeyAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		pw := settings().Password
+		if pw == "" {
+			return next(c)
+		}
+		if subtle.ConstantTimeCompare([]byte(c.Request().Header.Get("X-Api-Key")), []byte(pw)) != 1 {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid api key")
+		}
+		return next(c)
+	}
+}
+
 func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageapi *storageapi.Client, conn *wirerpc.Conn) error {
 	deadline := time.Now().Add(5 * time.Second)
 	for held.Load() == nil && time.Now().Before(deadline) {
@@ -78,6 +92,7 @@ func startPrusalink(ctx context.Context, devicesapi *deviceapi.Client, storageap
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(apiKeyAuth)
 
 	// PrinterApiV1FilesStoragePathPut - upload file or create folder
 	e.PUT("/:printer/api/v1/files/:storage/:path", c.PrinterApiV1FilesStoragePathPut)

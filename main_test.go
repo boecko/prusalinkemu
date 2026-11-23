@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/labstack/echo/v4"
 	"github.com/prusa3d/prusa-connect/sdk/wirerpc"
 )
 
