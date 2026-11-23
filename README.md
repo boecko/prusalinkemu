@@ -20,7 +20,7 @@ No API Key is required ATM.
 
 ## setup instructions in slicer
 * HostType: PrusaLink (obviously)
-* HostName: http://&lt;ip&gt;:9090/<printername>
+* HostName: http://&lt;ip&gt;:9090/&lt;printername&gt;
 
 ![Settings](images/01_settings.png)
 
